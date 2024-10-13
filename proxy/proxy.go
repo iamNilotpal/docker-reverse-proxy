@@ -17,6 +17,7 @@ func CreateReverseProxy() http.Handler {
 
 	router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			println("Forwarding request...")
 			handleFunc(w, r)
 		})
 	})

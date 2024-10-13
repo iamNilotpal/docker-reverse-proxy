@@ -2,8 +2,9 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
+	"io"
 	"net/http"
+	"os"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
@@ -30,7 +31,7 @@ func CreateRouter(cli *client.Client) http.Handler {
 
 		images, err := cli.ImageList(r.Context(), image.ListOptions{All: false})
 		if err != nil {
-			Respond(w, http.StatusInternalServerError, "Error")
+			Respond(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
@@ -48,10 +49,17 @@ func CreateRouter(cli *client.Client) http.Handler {
 		}
 
 		if !imageExists {
-			fmt.Printf("\nPulling image : %s\n", img)
-			cli.ImagePull(r.Context(), img, image.PullOptions{})
+			reader, err := cli.ImagePull(r.Context(), img, image.PullOptions{})
+			if err != nil {
+				Respond(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+
+			defer reader.Close()
+			io.Copy(os.Stdout, reader)
 		}
 
+		println("Creating container...")
 		resp, err := cli.ContainerCreate(
 			r.Context(),
 			&container.Config{Tty: false, Image: img},
@@ -61,22 +69,23 @@ func CreateRouter(cli *client.Client) http.Handler {
 			"",
 		)
 		if err != nil {
-			Respond(w, http.StatusInternalServerError, "Error creating container.")
+			Respond(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
+		println("Starting container...")
 		if err := cli.ContainerStart(r.Context(), resp.ID, container.StartOptions{}); err != nil {
-			Respond(w, http.StatusInternalServerError, "Error starting container.")
+			Respond(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		info, err := cli.ContainerInspect(r.Context(), resp.ID)
 		if err != nil {
-			Respond(w, http.StatusInternalServerError, "Error getting container.")
+			Respond(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		Respond(w, http.StatusCreated, map[string]string{"url": info.Name + ".localhost"})
+		Respond(w, http.StatusCreated, map[string]string{"url": info.Name[1:] + ".localhost:8000"})
 	})
 
 	return router

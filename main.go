@@ -22,17 +22,19 @@ func main() {
 	defer cli.Close()
 
 	appRouter := server.CreateRouter(cli)
-	server := http.Server{Handler: appRouter, Addr: "localhost:8000"}
+	server := http.Server{Handler: appRouter, Addr: "localhost:8001"}
 
 	proxyRouter := proxy.CreateReverseProxy()
-	proxyServer := http.Server{Handler: proxyRouter, Addr: "localhost:80"}
+	proxyServer := http.Server{Handler: proxyRouter, Addr: "localhost:8000"}
 
 	go func() {
+		println("Server running on localhost:8001")
 		if err := server.ListenAndServe(); err != nil {
 			fmt.Printf("Error starting server : %+v", err)
 		}
 	}()
 
+	println("Reverse proxy running on localhost:8000")
 	if err := proxyServer.ListenAndServe(); err != nil {
 		fmt.Printf("Error starting proxy server : %+v", err)
 	}
