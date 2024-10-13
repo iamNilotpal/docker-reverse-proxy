@@ -1,12 +1,12 @@
-version: '3.9'
 name: 'Reverse Proxy'
 
 services:
   proxy:
+    container_name: proxy-server
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '80:80'
-      - '8000:8000'
+      - 80:8000
+      - 8001:8001
     network_mode: bridge

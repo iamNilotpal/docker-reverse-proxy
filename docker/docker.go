@@ -39,21 +39,19 @@ func SaveContainerData(cli *client.Client) {
 		case val := <-eventsCh:
 			if val.Action == events.ActionStart && val.Type == events.ContainerEventType {
 				info, err := cli.ContainerInspect(context.Background(), val.Actor.ID)
-				var port int
-
-				for k := range info.Config.ExposedPorts {
-					if k.Proto() == "tcp" {
-						port = k.Int()
-					}
-				}
-
 				if err == nil {
+					var port int
+					for k := range info.Config.ExposedPorts {
+						if k.Proto() == "tcp" {
+							port = k.Int()
+						}
+					}
 					put(info.Name[1:], containerInfo{Port: port, IpAddress: info.NetworkSettings.IPAddress})
 				}
 			}
 
 		case err := <-errCh:
-			fmt.Printf("%+v Error getting event", err)
+			fmt.Printf("\n%+v Error getting event\n", err)
 		}
 	}
 }
