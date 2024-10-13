@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/docker/docker/client"
+	"github.com/iamNilotpal/drp/cache"
 	"github.com/iamNilotpal/drp/proxy"
 	"github.com/iamNilotpal/drp/server"
 )
@@ -28,13 +29,17 @@ func main() {
 	proxyServer := http.Server{Handler: proxyRouter, Addr: "localhost:8000"}
 
 	go func() {
-		println("Server running on localhost:8001")
+		cache.Save(cli)
+	}()
+
+	go func() {
+		println("Server running on http://localhost:8001")
 		if err := server.ListenAndServe(); err != nil {
 			fmt.Printf("Error starting server : %+v", err)
 		}
 	}()
 
-	println("Reverse proxy running on localhost:8000")
+	println("Reverse proxy running on http://localhost:8000")
 	if err := proxyServer.ListenAndServe(); err != nil {
 		fmt.Printf("Error starting proxy server : %+v", err)
 	}

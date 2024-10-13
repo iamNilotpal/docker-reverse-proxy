@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/iamNilotpal/drp/docker"
+	"github.com/iamNilotpal/drp/cache"
 	"github.com/iamNilotpal/drp/server"
 )
 
@@ -29,7 +29,7 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	hostname := r.Host
 	subdomain := strings.Split(hostname, ".")[0]
 
-	info, ok := docker.Get(subdomain)
+	info, ok := cache.Get(subdomain)
 	if !ok {
 		server.Respond(w, http.StatusNotFound, "Not Found")
 		return
@@ -49,5 +49,5 @@ func handleFunc(w http.ResponseWriter, r *http.Request) {
 	defer resp.Body.Close()
 
 	w.WriteHeader(resp.StatusCode)
-	io.CopyN(w, resp.Body, resp.ContentLength)
+	io.Copy(w, resp.Body)
 }

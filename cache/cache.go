@@ -1,4 +1,4 @@
-package docker
+package cache
 
 import (
 	"context"
@@ -31,7 +31,7 @@ func Get(name string) (containerInfo, bool) {
 	return v, ok
 }
 
-func SaveContainerData(cli *client.Client) {
+func Save(cli *client.Client) {
 	eventsCh, errCh := cli.Events(context.Background(), events.ListOptions{})
 
 	for {
