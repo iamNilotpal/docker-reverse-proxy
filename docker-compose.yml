@@ -1,0 +1,13 @@
+version: '3.9'
+name: 'Reverse Proxy'
+
+services:
+  proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: go run main.go
+    ports:
+      - '80:80'
+      - '8000:8000'
+    network_mode: bridge
