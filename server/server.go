@@ -59,7 +59,8 @@ func CreateRouter(cli *client.Client) http.Handler {
 			io.Copy(os.Stdout, reader)
 		}
 
-		println("Creating container...")
+		println("\ncreating container...")
+
 		resp, err := cli.ContainerCreate(
 			r.Context(),
 			&container.Config{Tty: false, Image: img},
@@ -73,11 +74,16 @@ func CreateRouter(cli *client.Client) http.Handler {
 			return
 		}
 
-		println("Starting container...")
+		println("container created :", resp.ID)
+
+		println("starting container...")
+
 		if err := cli.ContainerStart(r.Context(), resp.ID, container.StartOptions{}); err != nil {
 			Respond(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+
+		println("container started...")
 
 		info, err := cli.ContainerInspect(r.Context(), resp.ID)
 		if err != nil {
